@@ -1,13 +1,19 @@
 package messageProcessingSystem
 
-type Message struct {
-	TypeMessage string `json:"Type"`
-	UidMessage  string `json:"Uid"`
-	AddressFrom string `json:"AddressFrom,omitempty"`
-	AddressTo   string `json:"AddressTo,omitempty"`
-	Payment     int    `json:"Payment,omitempty"`
-}
+import (
+	"encoding/json"
+	"os"
+)
 
-func (mes *Message) Processing(FileName string) {
+func Processing(FileName string, config any) error {
+	readData, err := os.ReadFile(FileName)
+	if err != nil {
+		return err
+	}
 
+	if err := json.Unmarshal(readData, config); err != nil {
+		return err
+	}
+
+	return nil
 }
