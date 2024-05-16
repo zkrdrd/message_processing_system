@@ -11,8 +11,8 @@ import (
 
 // обработка json файлов
 func Processing(FileName string, config any) error {
-	//var msg = &memory.Message{}
-
+	//	var msg = &memory.Message{}
+	//var data = map[string]memory.Message{}
 	if err := ConfigParser.Read(FileName, config); err != nil {
 		return err
 	}

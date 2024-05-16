@@ -66,8 +66,15 @@ func Testing() error {
 
 	_, _ = db.ExecContext(context.Background(), "INSERT INTO payment (type_message, uid_message, address_from, address_to, payment) VALUES (?, ?, ?, ?, ?);",
 		1, 2, 3, 4, 5)
-	row, _ := db.Query("SELECT * FROM payment;")
-	var (
+	//row, _ := db.Query("SELECT * FROM payment;")
+	exist, err := db.QueryContext(context.Background(), "SELECT type_message FROM payment WHERE uid_message = '?';", 3)
+	if exist != nil {
+		fmt.Println("asd")
+	}
+	if err != nil {
+		return err
+	}
+	/*var (
 		TypeMessage string
 		UidMessage  string
 		AddressFrom string
@@ -77,6 +84,6 @@ func Testing() error {
 	for row.Next() {
 		row.Scan(&TypeMessage, &UidMessage, &AddressFrom, &AddressTo, &Payment)
 		fmt.Println(TypeMessage, UidMessage, AddressFrom, AddressTo, Payment)
-	}
+	}*/
 	return nil
 }
