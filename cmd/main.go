@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var msg = &memory.Message{}
-	//var msg map[string]Message
+	//var msg map[string]memory.Message
 	storage.NewSqlite()
 	if err := messageProcessingSystem.Processing("messages/path1.json", msg); err != nil {
 		fmt.Println(err)
