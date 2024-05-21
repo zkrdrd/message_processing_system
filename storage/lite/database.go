@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"messageProcessingSystem/storage/memory"
 	"os"
 )
 
@@ -38,7 +37,7 @@ func DBcreate() {
 }
 
 func DBinsert() error {
-	var msg = &memory.Message{}
+	//var msg = &memory.Message{}
 	db, err := sql.Open("sqlite3", "storage/lite/message.db")
 	if err != nil {
 		return err
@@ -52,7 +51,7 @@ func DBinsert() error {
 	_, err = prp.Exec(2, 3, 4, 5, 6)*/
 
 	_, err = db.ExecContext(context.Background(), "INSERT INTO payment (type_message, uid_message, address_from, address_to, payment) VALUES (?, ?, ?, ?, ?);",
-		msg.TypeMessage, msg.UidMessage, 5, 6, 7)
+		1, 2, 5, 6, 7)
 	if err != nil {
 		return err
 	}
