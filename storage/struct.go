@@ -7,3 +7,11 @@ type Message struct {
 	AddressTo   string `json:"AddressTo,omitempty"`
 	Payment     int    `json:"Payment,omitempty"`
 }
+
+type MessageReader interface {
+	GetUid() string
+}
+
+func (msg Message) GetUid() string {
+	return msg.UidMessage
+}

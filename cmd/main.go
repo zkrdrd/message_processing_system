@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	messageProcessingSystem "messageProcessingSystem/internal/process"
+	memory "messageProcessingSystem/storage"
 	storage "messageProcessingSystem/storage/lite"
-	"messageProcessingSystem/storage/memory"
 )
 
 func main() {
@@ -17,5 +17,8 @@ func main() {
 	} else {
 		fmt.Println(msg)
 	}
-	fmt.Println()
+
+	var mmr memory.MessageReader = msg
+	a := mmr.GetUid()
+	fmt.Println(a)
 }
