@@ -1,4 +1,4 @@
-package memory
+package message
 
 type Message struct {
 	TypeMessage string `json:"TypeMessage"`
@@ -6,12 +6,4 @@ type Message struct {
 	AddressFrom string `json:"AddressFrom,omitempty"`
 	AddressTo   string `json:"AddressTo,omitempty"`
 	Payment     int    `json:"Payment,omitempty"`
-}
-
-type MessageReader interface {
-	GetUid() string
-}
-
-func (msg Message) GetUid() string {
-	return msg.UidMessage
 }
