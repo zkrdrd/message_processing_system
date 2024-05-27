@@ -1,27 +1,15 @@
-package storage
+package memory
 
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"fmt"
 	"log"
-	memory "messageProcessingSystem/storage"
-	"os"
+	message "messageProcessingSystem/storage"
 )
 
-func InitDatabase() {
-	if _, err := os.Stat("storage/lite/message.db"); errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create("storage/lite/message.db")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-		CreateDB()
-	}
-}
-
 func CreateDB() {
-	dbFile, err := sql.Open("sqlite3", "storage/lite/message.db")
+	dbFile, err := sql.Open("sqlite3", "file:memorybase?mode=memory&cache=shared")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,8 +27,8 @@ func CreateDB() {
 	}
 }
 
-func SavePayment(msg *memory.Message) error {
-	dbFile, err := sql.Open("sqlite3", "storage/lite/message.db")
+func SavePayment(msg *message.Message) error {
+	dbFile, err := sql.Open("sqlite3", "file:memorybase?mode=memory&cache=shared")
 	if err != nil {
 		return err
 	}
@@ -56,5 +44,10 @@ func SavePayment(msg *memory.Message) error {
 	if err != nil {
 		return err
 	}
+
+	rows := 0
+	dbFile.QueryRow("SELECT COUNT(*) FROM payment;").Scan(&rows)
+	fmt.Println(rows)
+
 	return nil
 }

@@ -5,7 +5,8 @@ import (
 	//"messageProcessingSystem/storage/memory"
 
 	memory "messageProcessingSystem/storage"
-	database "messageProcessingSystem/storage/lite"
+	dblite "messageProcessingSystem/storage/lite"
+	dbmemory "messageProcessingSystem/storage/memory"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/zkrdrd/ConfigParser"
@@ -21,6 +22,15 @@ func Reader(FileName string, Config any) error {
 
 // обработка json файлов
 func Processing(msg *memory.Message) error {
-	database.SavePayment(msg)
+
+	dblite.InitDatabase()
+	dbmemory.CreateDB()
+
+	if err := dblite.SavePayment(msg); err != nil {
+		return err
+	}
+	if err := dbmemory.SavePayment(msg); err != nil {
+		return err
+	}
 	return nil
 }
