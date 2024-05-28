@@ -11,6 +11,7 @@ func main() {
 	if err := messageProcessingSystem.Reader("messages/file1.json", msg); err != nil {
 		fmt.Println(err)
 	}
-	messageProcessingSystem.Processing(msg)
-
+	if err := messageProcessingSystem.Processing(msg); err != nil {
+		fmt.Println(err)
+	}
 }

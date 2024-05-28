@@ -4,6 +4,7 @@ import (
 
 	//"messageProcessingSystem/storage/memory"
 
+	"errors"
 	memory "messageProcessingSystem/storage"
 	dblite "messageProcessingSystem/storage/lite"
 	dbmemory "messageProcessingSystem/storage/memory"
@@ -11,6 +12,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/zkrdrd/ConfigParser"
 )
+
+var ErrFieldIsEmpty = errors.New(`field 'UidMessage' is empty`)
 
 // запись данных в структуру
 func Reader(FileName string, Config any) error {
@@ -23,14 +26,19 @@ func Reader(FileName string, Config any) error {
 // обработка json файлов
 func Processing(msg *memory.Message) error {
 
-	dblite.InitDatabase()
-	dbmemory.CreateDB()
+	if msg.UidMessage == "" {
+		return ErrFieldIsEmpty
+	}
 
-	if err := dblite.SavePayment(msg); err != nil {
+	lite := dblite.NewDBLite("storage/lite/message.db")
+	lite.InitLiteDatabase()
+	if err := lite.SavePayment(msg); err != nil {
 		return err
 	}
+
 	if err := dbmemory.SavePayment(msg); err != nil {
 		return err
 	}
+
 	return nil
 }

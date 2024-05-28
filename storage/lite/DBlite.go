@@ -9,52 +9,60 @@ import (
 	"os"
 )
 
-func InitDatabase() {
-	if _, err := os.Stat("storage/lite/message.db"); errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create("storage/lite/message.db")
+// структура с путем сохраения файла базы данных
+type DBLiteFiles struct {
+	dbFile string //`default:"storage/lite/message.db"`
+}
+
+// заполнение структуры с путем сохраения файла базы данных
+func NewDBLite(filePathToStorage string) *DBLiteFiles {
+	return &DBLiteFiles{
+		dbFile: filePathToStorage,
+	}
+}
+
+// инициализация базы дынных
+func (db *DBLiteFiles) InitLiteDatabase() {
+
+	if _, err := os.Stat(db.dbFile); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(db.dbFile)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer f.Close()
-		CreateDB()
 	}
-}
 
-func CreateDB() {
-	dbFile, err := sql.Open("sqlite3", "storage/lite/message.db")
+	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer dbFile.Close()
+	defer dbFileData.Close()
 
-	_, err = dbFile.Exec(`CREATE TABLE IF NOT EXISTS payment 
+	if _, err = dbFileData.Exec(`CREATE TABLE IF NOT EXISTS payment 
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, 
 		type_message TEXT NOT NULL, 
 		uid_message TEXT NOT NULL UNIQUE, 
 		address_from TEXT NULL, 
 		address_to TEXT NULL, 
-		payment INTEGER NULL);`)
-	if err != nil {
+		payment INTEGER NULL);`); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func SavePayment(msg *message.Message) error {
-	dbFile, err := sql.Open("sqlite3", "storage/lite/message.db")
+// сохранение и изменение данных в файл базы данных
+func (db *DBLiteFiles) SavePayment(msg *message.Message) error {
+
+	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
 		return err
 	}
-	defer dbFile.Close()
+	defer dbFileData.Close()
 
-	if msg.UidMessage == "" {
-		return err
-	}
-
-	_, err = dbFile.ExecContext(context.Background(), `INSERT INTO payment (type_message, uid_message, address_from, address_to, payment) VALUES (?, ?, ?, ?, ?)
+	if _, err = dbFileData.ExecContext(context.Background(), `INSERT INTO payment (type_message, uid_message, address_from, address_to, payment) VALUES (?, ?, ?, ?, ?)
 	ON CONFLICT (uid_message) DO UPDATE SET type_message = ?;`,
-		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, msg.TypeMessage)
-	if err != nil {
+		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, msg.TypeMessage); err != nil {
 		return err
 	}
+
 	return nil
 }
