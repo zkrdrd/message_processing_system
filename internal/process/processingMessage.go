@@ -15,6 +15,10 @@ import (
 
 var ErrFieldIsEmpty = errors.New(`field 'UidMessage' is empty`)
 
+func NewStorage() {
+
+}
+
 // запись данных в структуру
 func Reader(FileName string, Config any) error {
 	if err := ConfigParser.Read(FileName, Config); err != nil {
@@ -35,8 +39,8 @@ func Processing(msg *memory.Message) error {
 	if err := lite.SavePayment(msg); err != nil {
 		return err
 	}
-
-	if err := dbmemory.SavePayment(msg); err != nil {
+	mem := dbmemory.NewDatabase()
+	if err := mem.SavePayment(msg); err != nil {
 		return err
 	}
 

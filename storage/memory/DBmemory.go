@@ -5,13 +5,26 @@ import (
 	message "messageProcessingSystem/storage"
 )
 
-var inMemory = make(map[string]message.Message)
+type DBMemory struct {
+	inMemory map[string]message.Message
+}
+
+func NewDatabase() *DBMemory {
+	return &DBMemory{
+		inMemory: make(map[string]message.Message),
+	}
+}
 
 // сохранение данных в базу даннях в памяти
-func SavePayment(msg *message.Message) error {
+func (db *DBMemory) SavePayment(msg *message.Message) error {
 
-	inMemory[msg.UidMessage] = *msg
-	fmt.Println(inMemory)
+	if _, ok := db.inMemory[msg.UidMessage]; ok {
+		return nil
+	} else {
+		db.inMemory[msg.UidMessage] = *msg
+	}
+
+	fmt.Println(db.inMemory)
 
 	return nil
 }
