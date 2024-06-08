@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-	message "messageProcessingSystem/storage"
+	"messageProcessingSystem/internal/model"
 	"os"
 )
 
@@ -50,7 +50,7 @@ func (db *DBLiteFiles) InitLiteDatabase() {
 }
 
 // сохранение и изменение данных в файл базы данных
-func (db *DBLiteFiles) SavePayment(msg *message.Message) error {
+func (db *DBLiteFiles) SavePayment(msg *model.Message) error {
 
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {

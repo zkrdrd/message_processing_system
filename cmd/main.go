@@ -2,31 +2,37 @@ package main
 
 import (
 	"fmt"
+	"messageProcessingSystem/internal/model"
 	messageProcessingSystem "messageProcessingSystem/internal/process"
-	memory "messageProcessingSystem/storage"
+
+	"github.com/zkrdrd/ConfigParser"
 )
 
 func main() {
-	var msg = &memory.Message{}
-	if err := messageProcessingSystem.Reader("messages/file1.json", msg); err != nil {
+	var msg = &model.Message{}
+
+	if err := ConfigParser.Read("messages/file1.json", msg); err != nil {
 		fmt.Println(err)
 	}
 	if err := messageProcessingSystem.Processing(msg); err != nil {
 		fmt.Println(err)
 	}
-	if err := messageProcessingSystem.Reader("messages/file2.json", msg); err != nil {
+
+	if err := ConfigParser.Read("messages/file2.json", msg); err != nil {
 		fmt.Println(err)
 	}
 	if err := messageProcessingSystem.Processing(msg); err != nil {
 		fmt.Println(err)
 	}
-	if err := messageProcessingSystem.Reader("messages/file3.json", msg); err != nil {
+
+	if err := ConfigParser.Read("messages/file3.json", msg); err != nil {
 		fmt.Println(err)
 	}
 	if err := messageProcessingSystem.Processing(msg); err != nil {
 		fmt.Println(err)
 	}
-	if err := messageProcessingSystem.Reader("messages/file4.json", msg); err != nil {
+
+	if err := ConfigParser.Read("messages/file4.json", msg); err != nil {
 		fmt.Println(err)
 	}
 	if err := messageProcessingSystem.Processing(msg); err != nil {

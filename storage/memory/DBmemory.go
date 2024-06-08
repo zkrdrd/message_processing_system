@@ -2,21 +2,21 @@ package memory
 
 import (
 	"fmt"
-	message "messageProcessingSystem/storage"
+	"messageProcessingSystem/internal/model"
 )
 
 type DBMemory struct {
-	inMemory map[string]message.Message
+	inMemory map[string]model.Message
 }
 
 func NewDatabase() *DBMemory {
 	return &DBMemory{
-		inMemory: make(map[string]message.Message),
+		inMemory: make(map[string]model.Message),
 	}
 }
 
 // сохранение данных в базу даннях в памяти
-func (db *DBMemory) SavePayment(msg *message.Message) error {
+func (db *DBMemory) SavePayment(msg *model.Message) error {
 
 	if _, ok := db.inMemory[msg.UidMessage]; ok {
 		return nil

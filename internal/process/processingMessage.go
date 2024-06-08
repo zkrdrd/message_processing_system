@@ -5,12 +5,11 @@ import (
 	//"messageProcessingSystem/storage/memory"
 
 	"errors"
-	memory "messageProcessingSystem/storage"
+	"messageProcessingSystem/internal/model"
 	dblite "messageProcessingSystem/storage/lite"
 	dbmemory "messageProcessingSystem/storage/memory"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/zkrdrd/ConfigParser"
 )
 
 var ErrFieldIsEmpty = errors.New(`field 'UidMessage' is empty`)
@@ -19,16 +18,8 @@ func NewStorage() {
 
 }
 
-// запись данных в структуру
-func Reader(FileName string, Config any) error {
-	if err := ConfigParser.Read(FileName, Config); err != nil {
-		return err
-	}
-	return nil
-}
-
 // обработка json файлов
-func Processing(msg *memory.Message) error {
+func Processing(msg *model.Message) error {
 
 	if msg.UidMessage == "" {
 		return ErrFieldIsEmpty
