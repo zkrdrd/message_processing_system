@@ -7,15 +7,20 @@ import (
 	"errors"
 	"messageProcessingSystem/internal/model"
 	dblite "messageProcessingSystem/storage/lite"
-	dbmemory "messageProcessingSystem/storage/memory"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var ErrFieldIsEmpty = errors.New(`field 'UidMessage' is empty`)
 
-func NewStorage() {
+type Storage struct {
+	storageFIle string
+}
 
+func NewStorage(filepath string) *Storage {
+	return &Storage{
+		storageFIle: filepath,
+	}
 }
 
 // обработка json файлов
@@ -30,10 +35,11 @@ func Processing(msg *model.Message) error {
 	if err := lite.SavePayment(msg); err != nil {
 		return err
 	}
-	mem := dbmemory.NewDatabase()
+
+	/*mem := dbmemory.NewDatabase()
 	if err := mem.SavePayment(msg); err != nil {
 		return err
-	}
+	}*/
 
 	return nil
 }

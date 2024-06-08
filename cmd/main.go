@@ -10,6 +10,9 @@ import (
 
 func main() {
 	var msg = &model.Message{}
+	//var srg = &messageProcessingSystem.Storage{}
+
+	messageProcessingSystem.NewStorage("storage/lite/message.db")
 
 	if err := ConfigParser.Read("messages/file1.json", msg); err != nil {
 		fmt.Println(err)
