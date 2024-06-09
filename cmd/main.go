@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"messageProcessingSystem/internal/process"
 	"messageProcessingSystem/storage"
@@ -16,7 +17,7 @@ const (
 
 func main() {
 
-	storageFilePath, storageType := GetEnv()
+	storageFilePath, storageType, _ := GetEnv()
 
 	paymentStorage := UseStorage(storageFilePath, storageType)
 
@@ -29,17 +30,17 @@ func main() {
 }
 
 // получение значений из env
-func GetEnv() (string, string) {
+func GetEnv() (string, string, error) {
+	storageType := os.Getenv(EnvStorageType)
+	if storageType == "" || (storageType != "memory" && storageType != "sqlite") {
+		return "", "", fmt.Errorf("storage type is not found. Using default storage in memory. For switch database use '%s'", EnvStorageType)
+	}
 	storageFilePath := os.Getenv(EnvStorageFilePath)
-	if storageFilePath == "" {
+	if storageFilePath == "" && storageType == "sqlite" {
 		log.Fatalf("file path for storage is not found. Use '%s' for set it", EnvStorageFilePath)
 	}
 
-	storageType := os.Getenv(EnvStorageType)
-	if storageType == "" || (storageType != "memory" && storageType != "sqlite") {
-		log.Printf("storage type is not found. Using default storage in memory. For switch database use '%s'", EnvStorageType)
-	}
-	return storageFilePath, storageType
+	return storageFilePath, storageType, nil
 }
 
 // определение используемого хранилища
