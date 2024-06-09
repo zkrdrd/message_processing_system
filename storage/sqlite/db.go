@@ -62,10 +62,6 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	}
 	defer dbFileData.Close()
 
-	if err := checkDatabaseAndModelIsCorrect(dbFileData, msg); err != nil {
-		return err
-	}
-
 	if _, err = dbFileData.Exec(`INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_at) VALUES (?, ?, ?, ?, ?, ?)
 	ON CONFLICT DO UPDATE SET type_message = ?, modify_at = ? WHERE type_message='created';`,
 		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, time.Now().Format("01-02-2006 15:04:05"), msg.TypeMessage, time.Now().Format("01-02-2006 15:04:05")); err != nil {
@@ -103,7 +99,13 @@ func (db *DBLite) GetPaymentById(id string) error {
 }
 
 // проверка элементов базы данных
-func checkDatabaseAndModelIsCorrect(dbFileData *sql.DB, msg *model.Message) error {
+func (db *DBLite) CheckDatabaseAndModelIsCorrect(msg *model.Message) error {
+	dbFileData, err := sql.Open("sqlite3", db.dbFile)
+	if err != nil {
+		return err
+	}
+	defer dbFileData.Close()
+
 	row, err := dbFileData.Query(`SELECT type_message, uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage)
 	if err != nil {
 		return err

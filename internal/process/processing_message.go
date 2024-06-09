@@ -33,6 +33,13 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
+	if err := mp.storage.CheckDatabaseAndModelIsCorrect(payment); err != nil {
+		return err
+	}
+
+	// 1. не обновлять платежи не имеющие статус created
+	// 2. при создании платеж долже иметь amount > 0 должен иметь Address From и TO, не может придти id и статус больше 1 раза
+	// 3. сделать функцию GetPaymentById - получение всего payment по id
 	if err := mp.storage.SavePayment(payment); err != nil {
 		return err
 	}
