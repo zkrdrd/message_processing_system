@@ -1,7 +1,6 @@
 package sqlite
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -47,8 +46,8 @@ func (db *DBLite) InitLiteDatabase() error {
 		address_from TEXT NULL, 
 		address_to TEXT NULL, 
 		payment INTEGER NULL,
-		created_date TEXT NOT NULL,
-		modify_date TEXT NULL);`); err != nil {
+		created_at TEXT NOT NULL,
+		modify_at TEXT NULL);`); err != nil {
 		return err
 	}
 	return nil
@@ -67,8 +66,8 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 		return err
 	}
 
-	if _, err = dbFileData.ExecContext(context.Background(), `INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_date) VALUES (?, ?, ?, ?, ?, ?)
-	ON CONFLICT DO UPDATE SET type_message = ?, modify_date = ? WHERE type_message='created';`,
+	if _, err = dbFileData.Exec(`INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_at) VALUES (?, ?, ?, ?, ?, ?)
+	ON CONFLICT DO UPDATE SET type_message = ?, modify_at = ? WHERE type_message='created';`,
 		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, time.Now().Format("01-02-2006 15:04:05"), msg.TypeMessage, time.Now().Format("01-02-2006 15:04:05")); err != nil {
 		return err
 	}
@@ -83,7 +82,7 @@ func (db *DBLite) GetPaymentById(id string) error {
 	}
 	defer dbFileData.Close()
 
-	row, err := dbFileData.Query(`SELECT type_message, uid_message, address_from, address_to, payment, created_date, modify_date FROM payment`)
+	row, err := dbFileData.Query(`SELECT type_message, uid_message, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message=?`, id)
 	if err != nil {
 		return err
 	}
@@ -94,11 +93,11 @@ func (db *DBLite) GetPaymentById(id string) error {
 			address_from string
 			address_to   string
 			payment      int
-			created_date string
-			modify_date  string
+			created_at   string
+			modify_at    string
 		)
-		row.Scan(&type_message, &id, &address_from, &address_to, &payment, &created_date, &modify_date)
-		fmt.Println(id, type_message, address_from, address_to, payment, created_date, modify_date)
+		row.Scan(&type_message, &id, &address_from, &address_to, &payment, &created_at, &modify_at)
+		fmt.Println(id, type_message, address_from, address_to, payment, created_at, modify_at)
 	}
 	return nil
 }
