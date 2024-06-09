@@ -29,7 +29,7 @@ func main() {
 
 	var paymentStorage storage.Storage
 
-	// TODO: декомпозировать (весь switch в функцию) UseStorage() storage.Storage
+	// TODO: декомпозировать весь switch в функцию UseStorage() storage.Storage
 	switch storageType {
 	case "sqlite":
 		storageLite := sqlite.NewDatabase(storageFilePath)
