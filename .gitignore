@@ -1,1 +1,3 @@
-storage/lite/message.db
+storage/sqlite/message.db
+.vscode
+__debug_*

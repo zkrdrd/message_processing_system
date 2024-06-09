@@ -1,40 +1,39 @@
-package database
+package sqlite
 
 import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
 	"messageProcessingSystem/internal/model"
 	"os"
 )
 
 // структура с путем сохраения файла базы данных
-type DBLiteFiles struct {
+type DBLite struct {
 	dbFile string //`default:"storage/lite/message.db"`
 }
 
 // заполнение структуры с путем сохраения файла базы данных
-func NewDBLite(filePathToStorage string) *DBLiteFiles {
-	return &DBLiteFiles{
+func NewDatabase(filePathToStorage string) *DBLite {
+	return &DBLite{
 		dbFile: filePathToStorage,
 	}
 }
 
 // инициализация базы дынных
-func (db *DBLiteFiles) InitLiteDatabase() {
+func (db *DBLite) InitLiteDatabase() error {
 
 	if _, err := os.Stat(db.dbFile); errors.Is(err, os.ErrNotExist) {
 		f, err := os.Create(db.dbFile)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		defer f.Close()
 	}
 
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer dbFileData.Close()
 
@@ -45,12 +44,13 @@ func (db *DBLiteFiles) InitLiteDatabase() {
 		address_from TEXT NULL, 
 		address_to TEXT NULL, 
 		payment INTEGER NULL);`); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 // сохранение и изменение данных в файл базы данных
-func (db *DBLiteFiles) SavePayment(msg *model.Message) error {
+func (db *DBLite) SavePayment(msg *model.Message) error {
 
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {

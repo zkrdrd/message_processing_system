@@ -1,44 +1,78 @@
 package main
 
 import (
-	"fmt"
-	"messageProcessingSystem/internal/model"
-	messageProcessingSystem "messageProcessingSystem/internal/process"
+	"log"
+	"messageProcessingSystem/internal/process"
+	"messageProcessingSystem/storage"
+	"messageProcessingSystem/storage/memory"
+	"messageProcessingSystem/storage/sqlite"
+	"os"
+)
 
-	"github.com/zkrdrd/ConfigParser"
+const (
+	EnvStorageFilePath = "ENV_STORAGE_FILE_PATH"
+	EnvStorageType     = "ENV_STORAGE_TYPE"
 )
 
 func main() {
-	var msg = &model.Message{}
-	//var srg = &messageProcessingSystem.Storage{}
 
-	messageProcessingSystem.NewStorage("storage/lite/message.db")
-
-	if err := ConfigParser.Read("messages/file1.json", msg); err != nil {
-		fmt.Println(err)
-	}
-	if err := messageProcessingSystem.Processing(msg); err != nil {
-		fmt.Println(err)
+	// TODO: вынести в функцию конфигурации GetEnv
+	storageFilePath := os.Getenv(EnvStorageFilePath)
+	if storageFilePath == "" {
+		log.Fatalf("file path for storage is not found. Use '%s' for set it", EnvStorageFilePath)
 	}
 
-	if err := ConfigParser.Read("messages/file2.json", msg); err != nil {
-		fmt.Println(err)
-	}
-	if err := messageProcessingSystem.Processing(msg); err != nil {
-		fmt.Println(err)
+	storageType := os.Getenv(EnvStorageType)
+	if storageType == "" || (storageType != "memory" && storageType != "sqlite") {
+		log.Printf("storage type is not found. Using default storage in memory. For switch database use '%s'", EnvStorageType)
 	}
 
-	if err := ConfigParser.Read("messages/file3.json", msg); err != nil {
-		fmt.Println(err)
-	}
-	if err := messageProcessingSystem.Processing(msg); err != nil {
-		fmt.Println(err)
+	var paymentStorage storage.Storage
+
+	// TODO: декомпозировать (весь switch в функцию) UseStorage() storage.Storage
+	switch storageType {
+	case "sqlite":
+		storageLite := sqlite.NewDatabase(storageFilePath)
+		if err := storageLite.InitLiteDatabase(); err != nil {
+			log.Fatal(err)
+		}
+		paymentStorage = storageLite
+
+	default:
+		paymentStorage = memory.NewDatabase()
 	}
 
-	if err := ConfigParser.Read("messages/file4.json", msg); err != nil {
-		fmt.Println(err)
-	}
-	if err := messageProcessingSystem.Processing(msg); err != nil {
-		fmt.Println(err)
+	msgProcessor := process.NewMessagesProcessor(paymentStorage)
+	for _, messageRaw := range testMessages {
+		if err := msgProcessor.PaymentProcessor([]byte(messageRaw)); err != nil {
+			log.Print(err)
+		}
 	}
 }
+
+var (
+	testMessages = []string{
+		`{
+			"TypeMessage": "created",
+			"UidMessage": "1A",
+			"AddressFrom": "43245",
+			"AddressTo": "4124",
+			"Payment": 5000
+		}`,
+		`{
+			"TypeMessage": "processed",
+			"UidMessage": "1A"
+		}`,
+		`{
+			"TypeMessage": "canceled",
+			"UidMessage": "1A"
+		}`,
+		`{
+			"TypeMessage": "created",
+			"UidMessage": "2A",
+			"AddressFrom": "43224245",
+			"AddressTo": "41123424",
+			"Payment": 500000
+		}`,
+	}
+)
