@@ -24,7 +24,14 @@ func (db *DBMemory) SavePayment(msg *model.Message) error {
 		db.inMemory[msg.UidMessage] = *msg
 	}
 
-	fmt.Println(db.inMemory)
+	return nil
+}
 
+func (db *DBMemory) GetPaymentById(id string) error {
+	for k, m := range db.inMemory {
+		if k == id {
+			fmt.Println(m)
+		}
+	}
 	return nil
 }

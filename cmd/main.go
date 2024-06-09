@@ -16,7 +16,20 @@ const (
 
 func main() {
 
-	// TODO: вынести в функцию конфигурации GetEnv
+	storageFilePath, storageType := GetEnv()
+
+	paymentStorage := UseStorage(storageFilePath, storageType)
+
+	msgProcessor := process.NewMessagesProcessor(paymentStorage)
+	for _, messageRaw := range testMessages {
+		if err := msgProcessor.PaymentProcessor([]byte(messageRaw)); err != nil {
+			log.Print(err)
+		}
+	}
+}
+
+// получение значений из env
+func GetEnv() (string, string) {
 	storageFilePath := os.Getenv(EnvStorageFilePath)
 	if storageFilePath == "" {
 		log.Fatalf("file path for storage is not found. Use '%s' for set it", EnvStorageFilePath)
@@ -26,10 +39,12 @@ func main() {
 	if storageType == "" || (storageType != "memory" && storageType != "sqlite") {
 		log.Printf("storage type is not found. Using default storage in memory. For switch database use '%s'", EnvStorageType)
 	}
+	return storageFilePath, storageType
+}
 
+// определение используемого хранилища
+func UseStorage(storageFilePath, storageType string) storage.Storage {
 	var paymentStorage storage.Storage
-
-	// TODO: декомпозировать весь switch в функцию UseStorage() storage.Storage
 	switch storageType {
 	case "sqlite":
 		storageLite := sqlite.NewDatabase(storageFilePath)
@@ -41,13 +56,7 @@ func main() {
 	default:
 		paymentStorage = memory.NewDatabase()
 	}
-
-	msgProcessor := process.NewMessagesProcessor(paymentStorage)
-	for _, messageRaw := range testMessages {
-		if err := msgProcessor.PaymentProcessor([]byte(messageRaw)); err != nil {
-			log.Print(err)
-		}
-	}
+	return paymentStorage
 }
 
 var (

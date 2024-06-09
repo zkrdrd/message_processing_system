@@ -4,8 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"messageProcessingSystem/internal/model"
 	"os"
+	"time"
 )
 
 // структура с путем сохраения файла базы данных
@@ -43,7 +46,9 @@ func (db *DBLite) InitLiteDatabase() error {
 		uid_message TEXT NOT NULL UNIQUE, 
 		address_from TEXT NULL, 
 		address_to TEXT NULL, 
-		payment INTEGER NULL);`); err != nil {
+		payment INTEGER NULL,
+		created_date TEXT NOT NULL,
+		modify_date TEXT NULL);`); err != nil {
 		return err
 	}
 	return nil
@@ -58,10 +63,75 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	}
 	defer dbFileData.Close()
 
-	if _, err = dbFileData.ExecContext(context.Background(), `INSERT INTO payment (type_message, uid_message, address_from, address_to, payment) VALUES (?, ?, ?, ?, ?)
-	ON CONFLICT (uid_message) DO UPDATE SET type_message = ?;`,
-		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, msg.TypeMessage); err != nil {
+	if err := checkDatabaseAndModelIsCorrect(dbFileData, msg); err != nil {
 		return err
+	}
+
+	if _, err = dbFileData.ExecContext(context.Background(), `INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_date) VALUES (?, ?, ?, ?, ?, ?)
+	ON CONFLICT DO UPDATE SET type_message = ?, modify_date = ? WHERE type_message='created';`,
+		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, time.Now().Format("01-02-2006 15:04:05"), msg.TypeMessage, time.Now().Format("01-02-2006 15:04:05")); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *DBLite) GetPaymentById(id string) error {
+	dbFileData, err := sql.Open("sqlite3", db.dbFile)
+	if err != nil {
+		return err
+	}
+	defer dbFileData.Close()
+
+	row, err := dbFileData.Query(`SELECT type_message, uid_message, address_from, address_to, payment, created_date, modify_date FROM payment`)
+	if err != nil {
+		return err
+	}
+	for row.Next() {
+		var (
+			id           string
+			type_message string
+			address_from string
+			address_to   string
+			payment      int
+			created_date string
+			modify_date  string
+		)
+		row.Scan(&type_message, &id, &address_from, &address_to, &payment, &created_date, &modify_date)
+		fmt.Println(id, type_message, address_from, address_to, payment, created_date, modify_date)
+	}
+	return nil
+}
+
+// проверка элементов базы данных
+func checkDatabaseAndModelIsCorrect(dbFileData *sql.DB, msg *model.Message) error {
+	row, err := dbFileData.Query(`SELECT type_message, uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage)
+	if err != nil {
+		return err
+	}
+	for row.Next() {
+		var (
+			id           string
+			type_message string
+		)
+		row.Scan(&type_message, &id)
+
+		if type_message == msg.TypeMessage && id == msg.UidMessage {
+			return fmt.Errorf("model is exist")
+		}
+	}
+
+	var id string
+	err = dbFileData.QueryRow(`SELECT uid_message FROM payment WHERE uid_message = ?`, msg.UidMessage).Scan(&id)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.Print(err)
+		}
+		if msg.AddressFrom != "" && msg.AddressTo != "" && msg.Payment > 0 {
+			return nil
+		} else {
+			return fmt.Errorf("model is not full")
+		}
 	}
 
 	return nil
