@@ -5,6 +5,7 @@ import (
 	//"messageProcessingSystem/storage/memory"
 
 	"encoding/json"
+	"fmt"
 	"messageProcessingSystem/internal/model"
 	"messageProcessingSystem/storage"
 
@@ -34,7 +35,9 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	}
 
 	if err := mp.storage.CheckDatabaseAndModelIsCorrect(payment); err != nil {
-		return err
+		if err := validateModel(payment); err != nil {
+			return err
+		}
 	}
 
 	// 1. не обновлять платежи не имеющие статус created
@@ -49,4 +52,12 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	}
 
 	return nil
+}
+
+func validateModel(msg *model.Message) error {
+	if msg.AddressFrom != "" && msg.AddressTo != "" && msg.Payment > 0 {
+		return nil
+	} else {
+		return fmt.Errorf("model is not correct")
+	}
 }

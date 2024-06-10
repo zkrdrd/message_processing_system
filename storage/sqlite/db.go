@@ -128,11 +128,7 @@ func (db *DBLite) CheckDatabaseAndModelIsCorrect(msg *model.Message) error {
 		if err != sql.ErrNoRows {
 			log.Print(err)
 		}
-		if msg.AddressFrom != "" && msg.AddressTo != "" && msg.Payment > 0 {
-			return nil
-		} else {
-			return fmt.Errorf("model is not full")
-		}
+		return err
 	}
 
 	return nil

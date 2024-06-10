@@ -36,10 +36,6 @@ func GetEnv() (string, string, error) {
 		return "", "", fmt.Errorf("storage type is not found. Using default storage in memory. For switch database use '%s'", EnvStorageType)
 	}
 	storageFilePath := os.Getenv(EnvStorageFilePath)
-	if storageFilePath == "" && storageType == "sqlite" {
-		log.Fatalf("file path for storage is not found. Use '%s' for set it", EnvStorageFilePath)
-	}
-
 	return storageFilePath, storageType, nil
 }
 
@@ -48,6 +44,9 @@ func UseStorage(storageFilePath, storageType string) storage.Storage {
 	var paymentStorage storage.Storage
 	switch storageType {
 	case "sqlite":
+		if storageFilePath == "" {
+			log.Fatalf("file path for storage is not found. Use '%s' for set it", EnvStorageFilePath)
+		}
 		storageLite := sqlite.NewDatabase(storageFilePath)
 		if err := storageLite.InitLiteDatabase(); err != nil {
 			log.Fatal(err)
