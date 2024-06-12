@@ -15,6 +15,16 @@ type DBLite struct {
 	dbFile string //`default:"storage/lite/message.db"`
 }
 
+type GetMessage struct {
+	Id           string
+	Type_message string
+	Address_from string
+	Address_to   string
+	Payment      int
+	Created_at   string
+	Modify_at    string
+}
+
 // заполнение структуры с путем сохраения файла базы данных
 func NewDatabase(filePathToStorage string) *DBLite {
 	return &DBLite{
@@ -62,6 +72,8 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	}
 	defer dbFileData.Close()
 
+	db.checkPaymentIsExist(dbFileData, msg)
+
 	if _, err = dbFileData.Exec(`INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_at) VALUES (?, ?, ?, ?, ?, ?)
 	ON CONFLICT DO UPDATE SET type_message = ?, modify_at = ? WHERE type_message='created';`,
 		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, time.Now().Format("01-02-2006 15:04:05"), msg.TypeMessage, time.Now().Format("01-02-2006 15:04:05")); err != nil {
@@ -71,65 +83,37 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	return nil
 }
 
-func (db *DBLite) GetPaymentById(id string) error {
+func (db *DBLite) GetPaymentById(uid string) error {
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
 		return err
 	}
 	defer dbFileData.Close()
 
-	row, err := dbFileData.Query(`SELECT type_message, uid_message, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message=?`, id)
-	if err != nil {
-		return err
-	}
-	for row.Next() {
-		var (
-			id           string
-			type_message string
-			address_from string
-			address_to   string
-			payment      int
-			created_at   string
-			modify_at    string
-		)
-		row.Scan(&type_message, &id, &address_from, &address_to, &payment, &created_at, &modify_at)
-		fmt.Println(id, type_message, address_from, address_to, payment, created_at, modify_at)
-	}
-	return nil
-}
+	gm := &GetMessage{}
 
-// проверка элементов базы данных
-func (db *DBLite) CheckDatabaseAndModelIsCorrect(msg *model.Message) error {
-	dbFileData, err := sql.Open("sqlite3", db.dbFile)
-	if err != nil {
-		return err
-	}
-	defer dbFileData.Close()
-
-	row, err := dbFileData.Query(`SELECT type_message, uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage)
-	if err != nil {
-		return err
-	}
-	for row.Next() {
-		var (
-			id           string
-			type_message string
-		)
-		row.Scan(&type_message, &id)
-
-		if type_message == msg.TypeMessage && id == msg.UidMessage {
-			return fmt.Errorf("model is exist")
-		}
-	}
-
-	var id string
-	err = dbFileData.QueryRow(`SELECT uid_message FROM payment WHERE uid_message = ?`, msg.UidMessage).Scan(&id)
+	err = dbFileData.QueryRow(`SELECT type_message, id, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message = ?`, uid).Scan(&gm.Type_message, &gm.Id, &gm.Address_from, &gm.Address_to, &gm.Payment, &gm.Created_at, &gm.Modify_at)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			log.Print(err)
 		}
 		return err
 	}
+	fmt.Println(gm.Id, gm.Address_from, gm.Address_to, gm.Payment, gm.Created_at, gm.Modify_at)
+	return nil
+}
 
+func (db *DBLite) checkPaymentIsExist(dbFileData *sql.DB, msg *model.Message) error {
+
+	var (
+		id           string
+		type_message string
+	)
+
+	_ = dbFileData.QueryRow(`SELECT type_message, uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage).Scan(&id, &type_message)
+
+	if type_message == msg.TypeMessage && id == msg.UidMessage {
+		log.Print("model is exist")
+	}
 	return nil
 }

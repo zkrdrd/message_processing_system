@@ -18,6 +18,10 @@ func NewDatabase() *DBMemory {
 // сохранение данных в базу даннях в памяти
 func (db *DBMemory) SavePayment(msg *model.Message) error {
 
+	if err := db.checkPaymentIsExist(msg); err != nil {
+		return err
+	}
+
 	if _, ok := db.inMemory[msg.UidMessage]; ok {
 		return nil
 	} else {
@@ -36,15 +40,15 @@ func (db *DBMemory) GetPaymentById(id string) error {
 	return nil
 }
 
-func (db *DBMemory) CheckDatabaseAndModelIsCorrect(msg *model.Message) error {
+func (db *DBMemory) checkPaymentIsExist(msg *model.Message) error {
 	for k, m := range db.inMemory {
 		if k == msg.UidMessage {
 			if m.TypeMessage == msg.TypeMessage {
 				return fmt.Errorf("model is exist")
 			}
 		}
-		if k != msg.UidMessage {
-			return fmt.Errorf("id is not found")
+		if k != msg.UidMessage && (msg.AddressFrom == "" || msg.AddressTo == "" || msg.Payment <= 0) {
+			return fmt.Errorf("model in not correct")
 		}
 	}
 
