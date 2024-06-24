@@ -16,13 +16,13 @@ type DBLite struct {
 }
 
 type GetMessage struct {
-	Id           string
-	Type_message string
-	Address_from string
-	Address_to   string
-	Payment      int
-	Created_at   string
-	Modify_at    string
+	TypeMessage string
+	UidMessage  string
+	AddressFrom string
+	AddressTo   string
+	Payment     int
+	//CreatedAt   string
+	//ModifyAt    string
 }
 
 // заполнение структуры с путем сохраения файла базы данных
@@ -92,14 +92,14 @@ func (db *DBLite) GetPaymentById(uid string) error {
 
 	gm := &GetMessage{}
 
-	err = dbFileData.QueryRow(`SELECT type_message, id, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message = ?`, uid).Scan(&gm.Type_message, &gm.Id, &gm.Address_from, &gm.Address_to, &gm.Payment, &gm.Created_at, &gm.Modify_at)
+	err = dbFileData.QueryRow(`SELECT type_message, uid_message, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message = ?`, uid).Scan(&gm.TypeMessage, &gm.UidMessage, &gm.AddressFrom, &gm.AddressTo, &gm.Payment) //, &gm.CreatedAt, &gm.ModifyAt)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			log.Print(err)
 		}
 		return err
 	}
-	fmt.Println(gm.Id, gm.Address_from, gm.Address_to, gm.Payment, gm.Created_at, gm.Modify_at)
+	fmt.Println(gm.UidMessage, gm.TypeMessage, gm.AddressFrom, gm.AddressTo, gm.Payment) //, gm.CreatedAt, gm.ModifyAt)
 	return nil
 }
 
