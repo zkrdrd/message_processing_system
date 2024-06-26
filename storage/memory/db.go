@@ -9,11 +9,25 @@ type DBMemory struct {
 	inMemory map[string]model.Message
 }
 
+type GetMessage struct {
+	TypeMessage string
+	UidMessage  string
+	AddressFrom string
+	AddressTo   string
+	Payment     int
+	//CreatedAt   string
+	//ModifyAt    string
+}
+
 func NewDatabase() *DBMemory {
 	return &DBMemory{
 		inMemory: make(map[string]model.Message),
 	}
 }
+
+// TODO:
+// 1. статус платежа Бд не обновляется
+// 2. не проверяется если платеж уже прошел
 
 // сохранение данных в базу даннях в памяти
 func (db *DBMemory) SavePayment(msg *model.Message) error {
@@ -32,9 +46,15 @@ func (db *DBMemory) SavePayment(msg *model.Message) error {
 }
 
 func (db *DBMemory) GetPaymentById(id string) error {
+	gm := &GetMessage{}
 	for k, m := range db.inMemory {
 		if k == id {
-			fmt.Println(m)
+			gm.TypeMessage = m.TypeMessage
+			gm.UidMessage = m.UidMessage
+			gm.AddressFrom = m.AddressFrom
+			gm.AddressTo = m.AddressTo
+			gm.Payment = m.Payment
+			fmt.Println(gm)
 		}
 	}
 	return nil
