@@ -9,16 +9,6 @@ type DBMemory struct {
 	inMemory map[string]model.Message
 }
 
-type GetMessage struct {
-	TypeMessage string
-	UidMessage  string
-	AddressFrom string
-	AddressTo   string
-	Payment     int
-	//CreatedAt   string
-	//ModifyAt    string
-}
-
 func NewDatabase() *DBMemory {
 	return &DBMemory{
 		inMemory: make(map[string]model.Message),
@@ -49,18 +39,17 @@ func (db *DBMemory) SavePayment(msg *model.Message) error {
 	return nil
 }
 
-func (db *DBMemory) GetPaymentById(id string) error {
+func (db *DBMemory) GetPaymentById(id string) (*model.GetedPayment, error) {
 	if val, ok := db.inMemory[id]; ok {
-		gm := &GetMessage{
+		return &model.GetedPayment{
 			TypeMessage: val.TypeMessage,
 			UidMessage:  val.UidMessage,
 			AddressFrom: val.AddressFrom,
 			AddressTo:   val.AddressTo,
 			Payment:     val.Payment,
-		}
-		fmt.Println(gm)
+		}, nil
 	}
-	return nil
+	return nil, fmt.Errorf(`id is not found`)
 }
 
 func (db *DBMemory) checkPaymentIsExist(msg *model.Message) error {

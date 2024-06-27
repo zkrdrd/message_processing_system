@@ -40,7 +40,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
-	if err := mp.storage.GetPaymentById(payment.UidMessage); err != nil {
+	if _, err := mp.storage.GetPaymentById(payment.UidMessage); err != nil {
 		return err
 	}
 

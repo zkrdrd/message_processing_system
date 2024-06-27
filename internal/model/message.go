@@ -24,3 +24,13 @@ func (msg Message) Validate() error {
 	}
 	return nil
 }
+
+type GetedPayment struct {
+	TypeMessage string
+	UidMessage  string
+	AddressFrom string
+	AddressTo   string
+	Payment     int
+	//CreatedAt   string
+	//ModifyAt    string
+}

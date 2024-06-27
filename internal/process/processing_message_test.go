@@ -2,9 +2,9 @@ package process_test
 
 import (
 	"fmt"
+	"messageProcessingSystem/internal/model"
 	"messageProcessingSystem/internal/process"
 	"messageProcessingSystem/storage/memory"
-	"messageProcessingSystem/storage/sqlite"
 	"testing"
 )
 
@@ -32,7 +32,7 @@ func TestPaymentProcessor(t *testing.T) {
 
 var TestParam = []struct {
 	Msg    string //*model.Message
-	Result *sqlite.GetMessage
+	Result *model.GetedPayment
 	Error  bool
 }{
 	{
@@ -43,7 +43,7 @@ var TestParam = []struct {
 			"AddressTo":   "4124",
 			"Payment":     5000
 		}`,
-		Result: &sqlite.GetMessage{},
+		Result: &model.GetedPayment{},
 		Error:  false,
 	},
 	{
@@ -51,7 +51,7 @@ var TestParam = []struct {
 			"TypeMessage": "processed",
 			"UidMessage":  "1A"
 		}`,
-		Result: &sqlite.GetMessage{
+		Result: &model.GetedPayment{
 			TypeMessage: "processed",
 			UidMessage:  "1A",
 			AddressFrom: "43234",
@@ -68,7 +68,7 @@ var TestParam = []struct {
 			"AddressTo":   "41123424",
 			"Payment":     500000
 		}`,
-		Result: &sqlite.GetMessage{
+		Result: &model.GetedPayment{
 			TypeMessage: "created",
 			UidMessage:  "2A",
 			AddressFrom: "43224245",
@@ -85,7 +85,7 @@ var TestParam = []struct {
 			"AddressTo":   "41123424",
 			"Payment":     500000
 		}`,
-		Result: &sqlite.GetMessage{
+		Result: &model.GetedPayment{
 			TypeMessage: "created",
 			UidMessage:  "2A",
 			AddressFrom: "43224245",

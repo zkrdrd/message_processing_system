@@ -3,7 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"messageProcessingSystem/internal/model"
 	"os"
@@ -13,16 +12,6 @@ import (
 // структура с путем сохраения файла базы данных
 type DBLite struct {
 	dbFile string //`default:"storage/lite/message.db"`
-}
-
-type GetMessage struct {
-	TypeMessage string
-	UidMessage  string
-	AddressFrom string
-	AddressTo   string
-	Payment     int
-	//CreatedAt   string
-	//ModifyAt    string
 }
 
 // заполнение структуры с путем сохраения файла базы данных
@@ -83,24 +72,23 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	return nil
 }
 
-func (db *DBLite) GetPaymentById(uid string) error {
+func (db *DBLite) GetPaymentById(uid string) (*model.GetedPayment, error) {
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer dbFileData.Close()
 
-	gm := &GetMessage{}
+	gm := &model.GetedPayment{}
 
 	err = dbFileData.QueryRow(`SELECT type_message, uid_message, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message = ?`, uid).Scan(&gm.TypeMessage, &gm.UidMessage, &gm.AddressFrom, &gm.AddressTo, &gm.Payment) //, &gm.CreatedAt, &gm.ModifyAt)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			log.Print(err)
 		}
-		return err
+		return nil, err
 	}
-	fmt.Println(gm.UidMessage, gm.TypeMessage, gm.AddressFrom, gm.AddressTo, gm.Payment) //, gm.CreatedAt, gm.ModifyAt)
-	return nil
+	return gm, nil
 }
 
 func (db *DBLite) checkPaymentIsExist(dbFileData *sql.DB, msg *model.Message) error {
