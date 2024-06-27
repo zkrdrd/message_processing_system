@@ -26,8 +26,8 @@ func NewDatabase() *DBMemory {
 }
 
 // TODO:
-// 1. статус платежа Бд не обновляется
-// 2. не проверяется если платеж уже прошел
+// 1. статус платежа Бд не обновляется //
+// 2. не проверяется если платеж уже прошел //
 
 // сохранение данных в базу даннях в памяти
 func (db *DBMemory) SavePayment(msg *model.Message) error {
@@ -37,6 +37,15 @@ func (db *DBMemory) SavePayment(msg *model.Message) error {
 	}
 
 	if _, ok := db.inMemory[msg.UidMessage]; ok {
+		// обновление данных в map
+		for k, m := range db.inMemory {
+			if k == msg.UidMessage && m.TypeMessage != msg.TypeMessage && m.TypeMessage == "created" {
+				msg.AddressFrom = m.AddressFrom
+				msg.AddressTo = m.AddressTo
+				msg.Payment = m.Payment
+				db.inMemory[msg.UidMessage] = *msg
+			}
+		}
 		return nil
 	} else {
 		db.inMemory[msg.UidMessage] = *msg
