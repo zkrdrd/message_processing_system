@@ -22,8 +22,10 @@ func NewDatabase() *DBMemory {
 // сохранение данных в базу даннях в памяти
 func (db *DBMemory) SavePayment(msg *model.Message) error {
 
-	if err := db.checkPaymentIsExist(msg); err != nil {
-		return err
+	if ok := db.findPaymentForValidate(msg); !ok {
+		if err := msg.ValidatePaymenIfNotExistInDB(); err != nil {
+			return err
+		}
 	}
 
 	if val, ok := db.inMemory[msg.UidMessage]; ok {
@@ -52,17 +54,10 @@ func (db *DBMemory) GetPaymentById(id string) (*model.GetedPayment, error) {
 	return nil, fmt.Errorf(`id is not found`)
 }
 
-func (db *DBMemory) checkPaymentIsExist(msg *model.Message) error {
-	for k, m := range db.inMemory {
-		if k == msg.UidMessage {
-			if m.TypeMessage == msg.TypeMessage {
-				return fmt.Errorf("model is exist")
-			}
-		}
-		if k != msg.UidMessage && (msg.AddressFrom == "" || msg.AddressTo == "" || msg.Payment <= 0) {
-			return fmt.Errorf("model in not correct")
-		}
+func (db *DBMemory) findPaymentForValidate(msg *model.Message) bool {
+	if _, ok := db.inMemory[msg.UidMessage]; ok {
+		return true
 	}
 
-	return nil
+	return false
 }

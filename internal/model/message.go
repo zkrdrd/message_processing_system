@@ -25,6 +25,13 @@ func (msg Message) Validate() error {
 	return nil
 }
 
+func (msg Message) ValidatePaymenIfNotExistInDB() error {
+	if msg.AddressFrom == "" || msg.AddressTo == "" || msg.Payment <= 0 {
+		return fmt.Errorf("model is not correct")
+	}
+	return nil
+}
+
 type GetedPayment struct {
 	TypeMessage string
 	UidMessage  string

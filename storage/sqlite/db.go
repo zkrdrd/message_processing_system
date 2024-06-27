@@ -61,7 +61,11 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	}
 	defer dbFileData.Close()
 
-	db.checkPaymentIsExist(dbFileData, msg)
+	if ok := db.findPaymentForValidate(dbFileData, msg); !ok {
+		if err := msg.ValidatePaymenIfNotExistInDB(); err != nil {
+			return err
+		}
+	}
 
 	if _, err = dbFileData.Exec(`INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_at) VALUES (?, ?, ?, ?, ?, ?)
 	ON CONFLICT DO UPDATE SET type_message = ?, modify_at = ? WHERE type_message='created';`,
@@ -91,17 +95,14 @@ func (db *DBLite) GetPaymentById(uid string) (*model.GetedPayment, error) {
 	return gm, nil
 }
 
-func (db *DBLite) checkPaymentIsExist(dbFileData *sql.DB, msg *model.Message) error {
+func (db *DBLite) findPaymentForValidate(dbFileData *sql.DB, msg *model.Message) bool {
 
 	var (
 		id           string
 		type_message string
 	)
 
-	_ = dbFileData.QueryRow(`SELECT type_message, uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage).Scan(&id, &type_message)
+	_ = dbFileData.QueryRow(`SELECT uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage).Scan(&id, &type_message)
 
-	if type_message == msg.TypeMessage && id == msg.UidMessage {
-		log.Print("model is exist")
-	}
-	return nil
+	return id == msg.UidMessage
 }
