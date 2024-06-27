@@ -50,16 +50,15 @@ func (db *DBMemory) SavePayment(msg *model.Message) error {
 }
 
 func (db *DBMemory) GetPaymentById(id string) error {
-	gm := &GetMessage{}
-	for k, m := range db.inMemory {
-		if k == id {
-			gm.TypeMessage = m.TypeMessage
-			gm.UidMessage = m.UidMessage
-			gm.AddressFrom = m.AddressFrom
-			gm.AddressTo = m.AddressTo
-			gm.Payment = m.Payment
-			fmt.Println(gm)
+	if val, ok := db.inMemory[id]; ok {
+		gm := &GetMessage{
+			TypeMessage: val.TypeMessage,
+			UidMessage:  val.UidMessage,
+			AddressFrom: val.AddressFrom,
+			AddressTo:   val.AddressTo,
+			Payment:     val.Payment,
 		}
+		fmt.Println(gm)
 	}
 	return nil
 }
