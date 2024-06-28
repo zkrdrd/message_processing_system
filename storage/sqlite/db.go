@@ -5,7 +5,6 @@ import (
 	"errors"
 	"messageProcessingSystem/model"
 	"os"
-	"time"
 )
 
 // структура с путем сохраения файла базы данных
@@ -72,14 +71,14 @@ func (db *DBLite) SavePayment(msg *model.MessagePayment) error {
 		?) -- updated_at
 	ON CONFLICT DO UPDATE SET 
 		type_message = EXCLUDED.type_message, 
-		updated_at = payment.updated_at;`,
+		updated_at = EXCLUDED.updated_at;`,
 		msg.TypeMessage,
 		msg.UidMessage,
 		msg.AddressFrom,
 		msg.AddressTo,
 		msg.Amount,
-		time.Now().Format(model.FormatDateTime),
-		time.Now().Format(model.FormatDateTime)); err != nil {
+		msg.CreatedAt,
+		msg.UpdatedAt); err != nil {
 		return err
 	}
 

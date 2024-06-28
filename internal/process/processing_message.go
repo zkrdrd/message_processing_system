@@ -16,6 +16,8 @@ var (
 	ErrAmountLessOne      = errors.New(`field amount is less 1`)
 	ErrPaymentIsExist     = errors.New(`payment is exist`)
 	ErrPaymentISCompleted = errors.New(`payment is completed`)
+	ErrAddressFromIsEmpty = errors.New(`in model payment address from is empry`)
+	ErrAddressToIsEmpty   = errors.New(`in model payment address from is empry`)
 )
 
 type MessagesProcessor struct {
@@ -32,6 +34,7 @@ func NewMessagesProcessor(storage storage.Storage) *MessagesProcessor {
 func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 
 	msgPayment := &model.MessagePayment{}
+
 	if err := json.Unmarshal(msg, msgPayment); err != nil {
 		return err
 	}
@@ -47,9 +50,13 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	payment, err := mp.storage.GetPaymentById(msgPayment.UidMessage)
 	if err != nil {
 		if err == model.ErrNotRows {
-			if msgPayment.Amount < 1 {
-				return ErrAmountLessOne
+
+			if err = ValidatePaymentForUpdate(msgPayment); err != nil {
+				return err
 			}
+
+			msgPayment.CreatedAt = model.GetCreateAt()
+
 			if err := mp.storage.SavePayment(msgPayment); err != nil {
 				return err
 			}
@@ -58,7 +65,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
-	if err = ValidatePaymentTypeMessageForUpdateDB(msgPayment, payment); err != nil {
+	if err = ValidatePaymentTypeMessageForUpdate(msgPayment, payment); err != nil {
 		return err
 	}
 
@@ -69,7 +76,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	return nil
 }
 
-func ValidatePaymentTypeMessageForUpdateDB(msgPayment *model.MessagePayment, payment *model.Payment) error {
+func ValidatePaymentTypeMessageForUpdate(msgPayment *model.MessagePayment, payment *model.Payment) error {
 	if payment.TypeMessage == model.TypeMessagePaymentCreated {
 		if payment.TypeMessage == msgPayment.TypeMessage {
 			return ErrPaymentIsExist
@@ -78,6 +85,20 @@ func ValidatePaymentTypeMessageForUpdateDB(msgPayment *model.MessagePayment, pay
 	if payment.TypeMessage == model.TypeMessagePaymentProcessed ||
 		payment.TypeMessage == model.TypeMessagePaymentCanceled {
 		return ErrPaymentISCompleted
+	}
+	msgPayment.UpdatedAt = model.GetUdatedAt()
+	return nil
+}
+
+func ValidatePaymentForUpdate(msgPayment *model.MessagePayment) error {
+	if msgPayment.AddressFrom == "" {
+		return ErrAddressFromIsEmpty
+	}
+	if msgPayment.AddressTo == "" {
+		return ErrAddressFromIsEmpty
+	}
+	if msgPayment.Amount < 1 {
+		return ErrAmountLessOne
 	}
 	return nil
 }

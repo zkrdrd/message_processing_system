@@ -14,12 +14,10 @@ type Payment struct {
 	UpdatedAt   string
 }
 
-func (p Payment) GetCreateAt() time.Time {
-	time, _ := time.Parse(time.RFC3339, p.CreatedAt)
-	return time
+func GetCreateAt() string {
+	return time.Now().Format(FormatDateTime)
 }
 
-func (p Payment) GetUdatedAt() time.Time {
-	time, _ := time.Parse(time.RFC3339, p.UpdatedAt)
-	return time
+func GetUdatedAt() string {
+	return time.Now().Format(FormatDateTime)
 }
