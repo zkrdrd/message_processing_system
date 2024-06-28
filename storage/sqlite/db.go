@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-	"messageProcessingSystem/internal/model"
+	"messageProcessingSystem/model"
 	"os"
 	"time"
 )
@@ -44,16 +44,16 @@ func (db *DBLite) InitLiteDatabase() error {
 		uid_message TEXT NOT NULL UNIQUE, 
 		address_from TEXT NULL, 
 		address_to TEXT NULL, 
-		payment INTEGER NULL,
+		amount INTEGER NULL,
 		created_at TEXT NOT NULL,
-		modify_at TEXT NULL);`); err != nil {
+		updated_at TEXT NULL);`); err != nil {
 		return err
 	}
 	return nil
 }
 
 // сохранение и изменение данных в файл базы данных
-func (db *DBLite) SavePayment(msg *model.Message) error {
+func (db *DBLite) SavePayment(msg *model.MessagePayment) error {
 
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
@@ -61,31 +61,51 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	}
 	defer dbFileData.Close()
 
-	if ok := db.findPaymentForValidate(dbFileData, msg); !ok {
-		if err := msg.ValidatePaymenIfNotExistInDB(); err != nil {
-			return err
-		}
-	}
-
-	if _, err = dbFileData.Exec(`INSERT INTO payment (type_message, uid_message, address_from, address_to, payment, created_at) VALUES (?, ?, ?, ?, ?, ?)
-	ON CONFLICT DO UPDATE SET type_message = ?, modify_at = ? WHERE type_message='created';`,
-		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, time.Now().Format("01-02-2006 15:04:05"), msg.TypeMessage, time.Now().Format("01-02-2006 15:04:05")); err != nil {
+	if _, err = dbFileData.Exec(`
+	INSERT INTO payment (type_message, uid_message, address_from, address_to, amount, created_at, updated_at) 
+	VALUES (
+		?, -- type_message
+		?, -- uid_message
+		?, -- address_from
+		?, -- address_to
+		?, -- amount
+		?, -- created_at
+		?) -- updated_at
+	ON CONFLICT DO UPDATE SET 
+		type_message = EXCLUDED.type_message, 
+		updated_at = payment.updated_at;`,
+		msg.TypeMessage,
+		msg.UidMessage,
+		msg.AddressFrom,
+		msg.AddressTo,
+		msg.Amount,
+		time.Now().Format(model.FormatDateTime),
+		time.Now().Format(model.FormatDateTime)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (db *DBLite) GetPaymentById(uid string) (*model.GetedPayment, error) {
+func (db *DBLite) GetPaymentById(uid string) (*model.Payment, error) {
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
 		return nil, err
 	}
 	defer dbFileData.Close()
 
-	gm := &model.GetedPayment{}
+	gm := &model.Payment{}
 
-	err = dbFileData.QueryRow(`SELECT type_message, uid_message, address_from, address_to, payment, created_at, modify_at FROM payment WHERE uid_message = ?`, uid).Scan(&gm.TypeMessage, &gm.UidMessage, &gm.AddressFrom, &gm.AddressTo, &gm.Payment) //, &gm.CreatedAt, &gm.ModifyAt)
+	err = dbFileData.QueryRow(`
+	SELECT type_message, uid_message, address_from, address_to, amount, created_at, updated_at 
+	FROM payment WHERE uid_message = ?`, uid).Scan(
+		&gm.TypeMessage,
+		&gm.UidMessage,
+		&gm.AddressFrom,
+		&gm.AddressTo,
+		&gm.Amount,
+		&gm.CreatedAt,
+		&gm.UpdatedAt)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			log.Print(err)
@@ -93,16 +113,4 @@ func (db *DBLite) GetPaymentById(uid string) (*model.GetedPayment, error) {
 		return nil, err
 	}
 	return gm, nil
-}
-
-func (db *DBLite) findPaymentForValidate(dbFileData *sql.DB, msg *model.Message) bool {
-
-	var (
-		id           string
-		type_message string
-	)
-
-	_ = dbFileData.QueryRow(`SELECT uid_message FROM payment WHERE type_message=? AND uid_message=?`, msg.TypeMessage, msg.UidMessage).Scan(&id, &type_message)
-
-	return id == msg.UidMessage
 }

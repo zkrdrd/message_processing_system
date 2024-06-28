@@ -2,8 +2,8 @@ package process_test
 
 import (
 	"fmt"
-	"messageProcessingSystem/internal/model"
 	"messageProcessingSystem/internal/process"
+	"messageProcessingSystem/model"
 	"messageProcessingSystem/storage/memory"
 	"testing"
 )
@@ -32,7 +32,7 @@ func TestPaymentProcessor(t *testing.T) {
 
 var TestParam = []struct {
 	Msg    string //*model.Message
-	Result *model.GetedPayment
+	Result *model.Payment
 	Error  bool
 }{
 	{
@@ -41,9 +41,9 @@ var TestParam = []struct {
 			"UidMessage":  "1A",
 			"AddressFrom": "43245",
 			"AddressTo":   "4124",
-			"Payment":     5000
+			"Amount":     5000
 		}`,
-		Result: &model.GetedPayment{},
+		Result: &model.Payment{},
 		Error:  false,
 	},
 	{
@@ -51,12 +51,12 @@ var TestParam = []struct {
 			"TypeMessage": "processed",
 			"UidMessage":  "1A"
 		}`,
-		Result: &model.GetedPayment{
+		Result: &model.Payment{
 			TypeMessage: "processed",
 			UidMessage:  "1A",
 			AddressFrom: "43234",
 			AddressTo:   "4124",
-			Payment:     5000,
+			Amount:      5000,
 		},
 		Error: false,
 	},
@@ -66,14 +66,14 @@ var TestParam = []struct {
 			"UidMessage":  "2A",
 			"AddressFrom": "43224245",
 			"AddressTo":   "41123424",
-			"Payment":     500000
+			"Amount":     500000
 		}`,
-		Result: &model.GetedPayment{
+		Result: &model.Payment{
 			TypeMessage: "created",
 			UidMessage:  "2A",
 			AddressFrom: "43224245",
 			AddressTo:   "41123424",
-			Payment:     500000,
+			Amount:      500000,
 		},
 		Error: false,
 	},
@@ -83,14 +83,14 @@ var TestParam = []struct {
 			"UidMessage":  "2A",
 			"AddressFrom": "43224245",
 			"AddressTo":   "41123424",
-			"Payment":     500000
+			"Amount":     500000
 		}`,
-		Result: &model.GetedPayment{
+		Result: &model.Payment{
 			TypeMessage: "created",
 			UidMessage:  "2A",
 			AddressFrom: "43224245",
 			AddressTo:   "41123424",
-			Payment:     500000,
+			Amount:      500000,
 		},
 		Error: true,
 	},
