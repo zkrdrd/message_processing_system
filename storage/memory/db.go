@@ -23,6 +23,7 @@ func (db *DBMemory) SavePayment(msg *model.Payment) error {
 
 	if val, ok := db.inMemory[msg.UidMessage]; ok {
 		val.TypeMessage = msg.TypeMessage
+		val.UpdatedAt = msg.UpdatedAt
 		db.inMemory[msg.UidMessage] = val
 		return nil
 	} else {
