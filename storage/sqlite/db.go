@@ -3,7 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"messageProcessingSystem/model"
 	"os"
 	"time"
@@ -107,8 +106,8 @@ func (db *DBLite) GetPaymentById(uid string) (*model.Payment, error) {
 		&gm.CreatedAt,
 		&gm.UpdatedAt)
 	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Print(err)
+		if err == sql.ErrNoRows {
+			return nil, model.ErrNotRows
 		}
 		return nil, err
 	}

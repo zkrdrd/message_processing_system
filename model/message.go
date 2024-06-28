@@ -11,6 +11,11 @@ const (
 	TypeMessagePaymentCanceled  = `canceled`
 )
 
+var (
+	ErrFieldIsEmpty = errors.New(`field is empty`)
+	ErrNotRows      = errors.New(`row is not found`)
+)
+
 type MessagePayment struct {
 	TypeMessage string `json:"TypeMessage"`
 	UidMessage  string `json:"UidMessage"`
@@ -18,8 +23,6 @@ type MessagePayment struct {
 	AddressTo   string `json:"AddressTo,omitempty"`
 	Amount      int    `json:"Payment,omitempty"`
 }
-
-var ErrFieldIsEmpty = errors.New(`field is empty`)
 
 func (msg MessagePayment) Validate() error {
 	if msg.UidMessage == "" {

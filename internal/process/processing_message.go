@@ -5,7 +5,7 @@ import (
 	//"messageProcessingSystem/storage/memory"
 
 	"encoding/json"
-	"fmt"
+	"errors"
 	"messageProcessingSystem/model"
 	"messageProcessingSystem/storage"
 
@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	ErrAmountLessOne      = fmt.Errorf(`field amount is less 1`)
-	ErrPaymentIsExist     = fmt.Errorf(`payment is exist`)
-	ErrPaymentISCompleted = fmt.Errorf(`payment is completed`)
+	ErrAmountLessOne      = errors.New(`field amount is less 1`)
+	ErrPaymentIsExist     = errors.New(`payment is exist`)
+	ErrPaymentISCompleted = errors.New(`payment is completed`)
 )
 
 type MessagesProcessor struct {
@@ -44,34 +44,40 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	// 2. при создании платеж долже иметь amount > 0 должен иметь Address From и TO, не может придти id и статус больше 1 раза
 	// 3. сделать функцию GetPaymentById - получение всего payment по id
 
-	strc, err := mp.storage.GetPaymentById(msgPayment.UidMessage)
-	if err == nil {
-		if err = ValidateStrc(msgPayment, strc); err != nil {
-			return err
+	payment, err := mp.storage.GetPaymentById(msgPayment.UidMessage)
+	if err != nil {
+		if err == model.ErrNotRows {
+			if msgPayment.Amount < 1 {
+				return ErrAmountLessOne
+			}
+			if err := mp.storage.SavePayment(msgPayment); err != nil {
+				return err
+			}
+			return nil
 		}
+		return err
+	}
+
+	if err = ValidatePaymentTypeMessageForUpdateDB(msgPayment, payment); err != nil {
+		return err
 	}
 
 	if err := mp.storage.SavePayment(msgPayment); err != nil {
 		return err
 	}
 
-	strc1, _ := mp.storage.GetPaymentById(msgPayment.UidMessage)
-	fmt.Println(strc1.TypeMessage)
-
 	return nil
 }
 
-func ValidateStrc(msgPayment *model.MessagePayment, strc *model.Payment) error {
-	if strc.TypeMessage == model.TypeMessagePaymentCreated {
-		if strc.TypeMessage == msgPayment.TypeMessage {
+func ValidatePaymentTypeMessageForUpdateDB(msgPayment *model.MessagePayment, payment *model.Payment) error {
+	if payment.TypeMessage == model.TypeMessagePaymentCreated {
+		if payment.TypeMessage == msgPayment.TypeMessage {
 			return ErrPaymentIsExist
 		}
 	}
-	if strc.TypeMessage == model.TypeMessagePaymentProcessed || strc.TypeMessage == model.TypeMessagePaymentCanceled {
+	if payment.TypeMessage == model.TypeMessagePaymentProcessed ||
+		payment.TypeMessage == model.TypeMessagePaymentCanceled {
 		return ErrPaymentISCompleted
-	}
-	if strc.Amount == 0 && msgPayment.Amount < 1 {
-		return ErrAmountLessOne
 	}
 	return nil
 }

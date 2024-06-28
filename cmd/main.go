@@ -18,7 +18,10 @@ func main() {
 
 	storageFilePath, storageType := GetEnvStorage()
 
-	paymentStorage := UseStorage(storageFilePath, storageType)
+	paymentStorage, err := UseStorage(storageFilePath, storageType)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	msgProcessor := process.NewMessagesProcessor(paymentStorage)
 	for _, messageRaw := range testMessages {
@@ -34,7 +37,7 @@ func GetEnvStorage() (storageFilePath, storageType string) {
 }
 
 // определение используемого хранилища
-func UseStorage(storageFilePath, storageType string) storage.Storage {
+func UseStorage(storageFilePath, storageType string) (storage.Storage, error) {
 	var paymentStorage storage.Storage
 	switch storageType {
 	case "sqlite":
@@ -43,7 +46,7 @@ func UseStorage(storageFilePath, storageType string) storage.Storage {
 		}
 		storageLite := sqlite.NewDatabase(storageFilePath)
 		if err := storageLite.InitLiteDatabase(); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		paymentStorage = storageLite
 	case "memory":
@@ -52,7 +55,7 @@ func UseStorage(storageFilePath, storageType string) storage.Storage {
 		log.Printf(`storage type is not found. Using default storage in memory. For switch database use '%s'`, EnvStorageType)
 		paymentStorage = memory.NewDatabase()
 	}
-	return paymentStorage
+	return paymentStorage, nil
 }
 
 var (

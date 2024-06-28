@@ -22,10 +22,6 @@ func TestPaymentProcessor(t *testing.T) {
 					t.Error(fmt.Errorf(`result %v != %w`, expect.Error, err))
 				}
 			}
-
-			/*if expect.Result != result {
-				t.Error(fmt.Errorf(`result %s != %s`, expect.Result, result))
-			}*/
 		}
 	})
 }

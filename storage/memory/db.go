@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"fmt"
 	"messageProcessingSystem/model"
 )
 
@@ -43,5 +42,5 @@ func (db *DBMemory) GetPaymentById(id string) (*model.Payment, error) {
 			Amount:      val.Amount,
 		}, nil
 	}
-	return nil, fmt.Errorf(`id is not found`)
+	return nil, model.ErrNotRows
 }
