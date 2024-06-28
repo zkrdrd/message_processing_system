@@ -3,6 +3,6 @@ package storage
 import "messageProcessingSystem/model"
 
 type Storage interface {
-	SavePayment(*model.MessagePayment) error
+	SavePayment(*model.Payment) error
 	GetPaymentById(string) (*model.Payment, error)
 }

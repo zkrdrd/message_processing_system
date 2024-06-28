@@ -5,12 +5,12 @@ import (
 )
 
 type DBMemory struct {
-	inMemory map[string]model.MessagePayment
+	inMemory map[string]model.Payment
 }
 
 func NewDatabase() *DBMemory {
 	return &DBMemory{
-		inMemory: make(map[string]model.MessagePayment),
+		inMemory: make(map[string]model.Payment),
 	}
 }
 
@@ -19,7 +19,7 @@ func NewDatabase() *DBMemory {
 // 2. не проверяется если платеж уже прошел //
 
 // сохранение данных в базу даннях в памяти
-func (db *DBMemory) SavePayment(msg *model.MessagePayment) error {
+func (db *DBMemory) SavePayment(msg *model.Payment) error {
 
 	if val, ok := db.inMemory[msg.UidMessage]; ok {
 		val.TypeMessage = msg.TypeMessage

@@ -51,7 +51,7 @@ func (db *DBLite) InitLiteDatabase() error {
 }
 
 // сохранение и изменение данных в файл базы данных
-func (db *DBLite) SavePayment(msg *model.MessagePayment) error {
+func (db *DBLite) SavePayment(msg *model.Payment) error {
 
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
