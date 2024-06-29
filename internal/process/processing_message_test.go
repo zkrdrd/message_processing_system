@@ -30,8 +30,20 @@ func TestPaymentProcessor(t *testing.T) {
 			}
 
 			if model, err := storage.GetPaymentById(msgPayment.UidMessage); err != nil {
-				if expect.Result != model {
-					t.Error(fmt.Errorf(`result %v != %v`, expect.Result, model))
+				if expect.Result.UidMessage != model.UidMessage {
+					t.Error(fmt.Errorf(`result field %v != %v`, expect.Result.UidMessage, model.UidMessage))
+				}
+				if expect.Result.TypeMessage != model.TypeMessage {
+					t.Error(fmt.Errorf(`result field %v != %v`, expect.Result.TypeMessage, model.TypeMessage))
+				}
+				if expect.Result.AddressFrom != model.AddressFrom {
+					t.Error(fmt.Errorf(`result field %v != %v`, expect.Result.AddressFrom, model.AddressFrom))
+				}
+				if expect.Result.AddressTo != model.AddressTo {
+					t.Error(fmt.Errorf(`result field %v != %v`, expect.Result.AddressTo, model.AddressTo))
+				}
+				if expect.Result.Amount != model.Amount {
+					t.Error(fmt.Errorf(`result field %v != %v`, expect.Result.Amount, model.Amount))
 				}
 			}
 		}
