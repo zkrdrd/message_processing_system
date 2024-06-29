@@ -6,7 +6,6 @@ import (
 	"messageProcessingSystem/internal/process"
 )
 
-
 func main() {
 
 	storageFilePath, storageType := app.GetEnvStorage()
@@ -31,7 +30,7 @@ var (
 			"UidMessage": "1A",
 			"AddressFrom": "43245",
 			"AddressTo": "4124",
-			"Payment": 5000
+			"Amount": 5000
 		}`,
 		`{
 			"TypeMessage": "processed",
@@ -46,7 +45,7 @@ var (
 			"UidMessage": "2A",
 			"AddressFrom": "43224245",
 			"AddressTo": "41123424",
-			"Payment": 500000
+			"Amount": 500000
 		}`,
 	}
 )

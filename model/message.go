@@ -21,7 +21,7 @@ type MessagePayment struct {
 	UidMessage  string `json:"UidMessage"`
 	AddressFrom string `json:"AddressFrom,omitempty"`
 	AddressTo   string `json:"AddressTo,omitempty"`
-	Amount      int    `json:"Payment,omitempty"`
+	Amount      int    `json:"Amount,omitempty"`
 }
 
 // Валидация обязательных полей
