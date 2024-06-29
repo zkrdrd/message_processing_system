@@ -1,9 +1,6 @@
 package process
 
 import (
-
-	//"messageProcessingSystem/storage/memory"
-
 	"encoding/json"
 	"errors"
 	"messageProcessingSystem/model"
@@ -32,13 +29,6 @@ func NewMessagesProcessor(storage storage.Storage) *MessagesProcessor {
 }
 
 // 1. Обработка сообщения
-// 2. Валидация обязытельных полей
-// 3. Получение данных из базы по id
-// 3.1. Если данных нет то проверяем поля которые должны быть если сообщение новое
-// 3.2. Сохраняем данные
-// 4. Если данные в базе присутствуют
-// 4.1. ПРоверяем статус платежа
-// 4.2 Если он created то обновляем данные
 func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 
 	msgPayment := &model.MessagePayment{}
@@ -47,10 +37,13 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
+	// Валидация обязытельных полей
 	if err := msgPayment.Validate(); err != nil {
 		return err
 	}
 
+	// Получение данных из базы по id
+	// Если данных нет то проверяем поля которые должны быть если сообщение новое
 	payment, err := mp.storage.GetPaymentById(msgPayment.UidMessage)
 	if err != nil {
 		if err == model.ErrNotRows {
@@ -75,6 +68,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 				UpdatedAt:   model.SetDateTime(),
 			}
 
+			// Сохрание данных
 			if err := mp.storage.SavePayment(payments); err != nil {
 				return err
 			}
@@ -83,6 +77,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
+	// Пhоверяем статус платежа если он created то обновляем данные
 	if err = CompareOldAndNewStatePayment(msgPayment, payment); err != nil {
 		return err
 	}
@@ -90,6 +85,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	payment.TypeMessage = msgPayment.TypeMessage
 	payment.UpdatedAt = model.SetDateTime()
 
+	// Сохрание данных
 	if err := mp.storage.SavePayment(payment); err != nil {
 		return err
 	}
