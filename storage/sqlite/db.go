@@ -85,6 +85,7 @@ func (db *DBLite) SavePayment(msg *model.Payment) error {
 	return nil
 }
 
+// получаем данные из файла базы
 func (db *DBLite) GetPaymentById(uid string) (*model.Payment, error) {
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {

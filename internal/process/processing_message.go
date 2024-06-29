@@ -24,13 +24,21 @@ type MessagesProcessor struct {
 	storage storage.Storage
 }
 
+// определение хранилица
 func NewMessagesProcessor(storage storage.Storage) *MessagesProcessor {
 	return &MessagesProcessor{
 		storage: storage,
 	}
 }
 
-// обработка json файлов
+// 1. Обработка сообщения
+// 2. Валидация обязытельных полей
+// 3. Получение данных из базы по id
+// 3.1. Если данных нет то проверяем поля которые должны быть если сообщение новое
+// 3.2. Сохраняем данные
+// 4. Если данные в базе присутствуют
+// 4.1. ПРоверяем статус платежа
+// 4.2 Если он created то обновляем данные
 func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 
 	msgPayment := &model.MessagePayment{}
@@ -42,10 +50,6 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	if err := msgPayment.Validate(); err != nil {
 		return err
 	}
-
-	// 1. не обновлять платежи не имеющие статус created
-	// 2. при создании платеж долже иметь amount > 0 должен иметь Address From и TO, не может придти id и статус больше 1 раза
-	// 3. сделать функцию GetPaymentById - получение всего payment по id
 
 	payment, err := mp.storage.GetPaymentById(msgPayment.UidMessage)
 	if err != nil {
@@ -92,6 +96,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	return nil
 }
 
+// Проверяем статус платежа
 func CompareOldAndNewStatePayment(msgPayment *model.MessagePayment, payment *model.Payment) error {
 	if payment.TypeMessage == model.TypeMessagePaymentCreated {
 		if payment.TypeMessage == msgPayment.TypeMessage {

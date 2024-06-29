@@ -24,6 +24,7 @@ type MessagePayment struct {
 	Amount      int    `json:"Payment,omitempty"`
 }
 
+// Валидация обязательных полей
 func (msg MessagePayment) Validate() error {
 	if msg.UidMessage == "" {
 		return fmt.Errorf("uid: %w", ErrFieldIsEmpty)

@@ -8,15 +8,12 @@ type DBMemory struct {
 	inMemory map[string]model.Payment
 }
 
+// Создаем базу в ОЗУ
 func NewDatabase() *DBMemory {
 	return &DBMemory{
 		inMemory: make(map[string]model.Payment),
 	}
 }
-
-// TODO:
-// 1. статус платежа Бд не обновляется //
-// 2. не проверяется если платеж уже прошел //
 
 // сохранение данных в базу даннях в памяти
 func (db *DBMemory) SavePayment(msg *model.Payment) error {
@@ -25,6 +22,7 @@ func (db *DBMemory) SavePayment(msg *model.Payment) error {
 	return nil
 }
 
+// Получаем даные из базы данных в памяти
 func (db *DBMemory) GetPaymentById(id string) (*model.Payment, error) {
 	if val, ok := db.inMemory[id]; ok {
 		return &model.Payment{

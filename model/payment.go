@@ -14,6 +14,7 @@ type Payment struct {
 	UpdatedAt   string
 }
 
+// Возвращаем текущее время
 func SetDateTime() string {
 	return time.Now().Format(FormatDateTime)
 }
