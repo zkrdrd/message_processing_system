@@ -14,10 +14,6 @@ type Payment struct {
 	UpdatedAt   string
 }
 
-func GetCreateAt() string {
-	return time.Now().Format(FormatDateTime)
-}
-
-func GetUdatedAt() string {
+func SetDateTime() string {
 	return time.Now().Format(FormatDateTime)
 }

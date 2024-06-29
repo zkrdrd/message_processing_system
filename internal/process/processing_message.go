@@ -51,17 +51,24 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	if err != nil {
 		if err == model.ErrNotRows {
 
-			if err = ValidatePaymentForUpdate(msgPayment); err != nil {
-				return err
+			if msgPayment.AddressFrom == "" {
+				return ErrAddressFromIsEmpty
+			}
+			if msgPayment.AddressTo == "" {
+				return ErrAddressFromIsEmpty
+			}
+			if msgPayment.Amount < 1 {
+				return ErrAmountLessOne
 			}
 
 			payments := &model.Payment{
 				TypeMessage: msgPayment.TypeMessage,
+				UidMessage:  msgPayment.UidMessage,
 				AddressFrom: msgPayment.AddressFrom,
 				AddressTo:   msgPayment.AddressTo,
 				Amount:      msgPayment.Amount,
-				CreatedAt:   model.GetCreateAt(),
-				UidMessage:  msgPayment.UidMessage,
+				CreatedAt:   model.SetDateTime(),
+				UpdatedAt:   model.SetDateTime(),
 			}
 
 			if err := mp.storage.SavePayment(payments); err != nil {
@@ -72,9 +79,12 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
-	if err = ValidatePaymentTypeMessageForUpdate(msgPayment, payment); err != nil {
+	if err = CompareOldAndNewStatePayment(msgPayment, payment); err != nil {
 		return err
 	}
+
+	payment.TypeMessage = msgPayment.TypeMessage
+	payment.UpdatedAt = model.SetDateTime()
 
 	if err := mp.storage.SavePayment(payment); err != nil {
 		return err
@@ -82,7 +92,7 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 	return nil
 }
 
-func ValidatePaymentTypeMessageForUpdate(msgPayment *model.MessagePayment, payment *model.Payment) error {
+func CompareOldAndNewStatePayment(msgPayment *model.MessagePayment, payment *model.Payment) error {
 	if payment.TypeMessage == model.TypeMessagePaymentCreated {
 		if payment.TypeMessage == msgPayment.TypeMessage {
 			return ErrPaymentIsExist
@@ -91,21 +101,6 @@ func ValidatePaymentTypeMessageForUpdate(msgPayment *model.MessagePayment, payme
 	if payment.TypeMessage == model.TypeMessagePaymentProcessed ||
 		payment.TypeMessage == model.TypeMessagePaymentCanceled {
 		return ErrPaymentISCompleted
-	}
-	payment.TypeMessage = msgPayment.TypeMessage
-	payment.UpdatedAt = model.GetUdatedAt()
-	return nil
-}
-
-func ValidatePaymentForUpdate(msgPayment *model.MessagePayment) error {
-	if msgPayment.AddressFrom == "" {
-		return ErrAddressFromIsEmpty
-	}
-	if msgPayment.AddressTo == "" {
-		return ErrAddressFromIsEmpty
-	}
-	if msgPayment.Amount < 1 {
-		return ErrAmountLessOne
 	}
 	return nil
 }
