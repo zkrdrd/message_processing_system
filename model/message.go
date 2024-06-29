@@ -22,8 +22,6 @@ type MessagePayment struct {
 	AddressFrom string `json:"AddressFrom,omitempty"`
 	AddressTo   string `json:"AddressTo,omitempty"`
 	Amount      int    `json:"Payment,omitempty"`
-	CreatedAt   string
-	UpdatedAt   string
 }
 
 func (msg MessagePayment) Validate() error {

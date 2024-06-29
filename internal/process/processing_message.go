@@ -76,16 +76,9 @@ func (mp *MessagesProcessor) PaymentProcessor(msg []byte) error {
 		return err
 	}
 
-	payments := &model.Payment{
-		TypeMessage: msgPayment.TypeMessage,
-		UpdatedAt:   model.GetUdatedAt(),
-		UidMessage:  msgPayment.UidMessage,
-	}
-
-	if err := mp.storage.SavePayment(payments); err != nil {
+	if err := mp.storage.SavePayment(payment); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -99,6 +92,8 @@ func ValidatePaymentTypeMessageForUpdate(msgPayment *model.MessagePayment, payme
 		payment.TypeMessage == model.TypeMessagePaymentCanceled {
 		return ErrPaymentISCompleted
 	}
+	payment.TypeMessage = msgPayment.TypeMessage
+	payment.UpdatedAt = model.GetUdatedAt()
 	return nil
 }
 

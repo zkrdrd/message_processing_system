@@ -21,15 +21,7 @@ func NewDatabase() *DBMemory {
 // сохранение данных в базу даннях в памяти
 func (db *DBMemory) SavePayment(msg *model.Payment) error {
 
-	if val, ok := db.inMemory[msg.UidMessage]; ok {
-		val.TypeMessage = msg.TypeMessage
-		val.UpdatedAt = msg.UpdatedAt
-		db.inMemory[msg.UidMessage] = val
-		return nil
-	} else {
-		db.inMemory[msg.UidMessage] = *msg
-	}
-
+	db.inMemory[msg.UidMessage] = *msg
 	return nil
 }
 
@@ -41,6 +33,8 @@ func (db *DBMemory) GetPaymentById(id string) (*model.Payment, error) {
 			AddressFrom: val.AddressFrom,
 			AddressTo:   val.AddressTo,
 			Amount:      val.Amount,
+			CreatedAt:   val.CreatedAt,
+			UpdatedAt:   val.UpdatedAt,
 		}, nil
 	}
 	return nil, model.ErrNotRows
