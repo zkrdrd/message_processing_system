@@ -6,10 +6,6 @@ import (
 	"messageProcessingSystem/internal/process"
 )
 
-const (
-	EnvStorageFilePath = "ENV_STORAGE_FILE_PATH"
-	EnvStorageType     = "ENV_STORAGE_TYPE"
-)
 
 func main() {
 
