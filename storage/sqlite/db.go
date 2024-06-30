@@ -1,10 +1,9 @@
 package sqlite
 
 import (
-	"context"
 	"database/sql"
 	"errors"
-	"messageProcessingSystem/internal/model"
+	"messageProcessingSystem/model"
 	"os"
 )
 
@@ -43,14 +42,16 @@ func (db *DBLite) InitLiteDatabase() error {
 		uid_message TEXT NOT NULL UNIQUE, 
 		address_from TEXT NULL, 
 		address_to TEXT NULL, 
-		payment INTEGER NULL);`); err != nil {
+		amount INTEGER NULL,
+		created_at TEXT NOT NULL,
+		updated_at TEXT NULL);`); err != nil {
 		return err
 	}
 	return nil
 }
 
 // сохранение и изменение данных в файл базы данных
-func (db *DBLite) SavePayment(msg *model.Message) error {
+func (db *DBLite) SavePayment(msg *model.Payment) error {
 
 	dbFileData, err := sql.Open("sqlite3", db.dbFile)
 	if err != nil {
@@ -58,11 +59,57 @@ func (db *DBLite) SavePayment(msg *model.Message) error {
 	}
 	defer dbFileData.Close()
 
-	if _, err = dbFileData.ExecContext(context.Background(), `INSERT INTO payment (type_message, uid_message, address_from, address_to, payment) VALUES (?, ?, ?, ?, ?)
-	ON CONFLICT (uid_message) DO UPDATE SET type_message = ?;`,
-		msg.TypeMessage, msg.UidMessage, msg.AddressFrom, msg.AddressTo, msg.Payment, msg.TypeMessage); err != nil {
+	if _, err = dbFileData.Exec(`
+	INSERT INTO payment (type_message, uid_message, address_from, address_to, amount, created_at, updated_at) 
+	VALUES (
+		?, -- type_message
+		?, -- uid_message
+		?, -- address_from
+		?, -- address_to
+		?, -- amount
+		?, -- created_at
+		?) -- updated_at
+	ON CONFLICT DO UPDATE SET 
+		type_message = EXCLUDED.type_message, 
+		updated_at = EXCLUDED.updated_at;`,
+		msg.TypeMessage,
+		msg.UidMessage,
+		msg.AddressFrom,
+		msg.AddressTo,
+		msg.Amount,
+		msg.CreatedAt,
+		msg.UpdatedAt); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// получаем данные из файла базы
+func (db *DBLite) GetPaymentById(uid string) (*model.Payment, error) {
+	dbFileData, err := sql.Open("sqlite3", db.dbFile)
+	if err != nil {
+		return nil, err
+	}
+	defer dbFileData.Close()
+
+	gm := &model.Payment{}
+
+	err = dbFileData.QueryRow(`
+	SELECT type_message, uid_message, address_from, address_to, amount, created_at, updated_at 
+	FROM payment WHERE uid_message = ?`, uid).Scan(
+		&gm.TypeMessage,
+		&gm.UidMessage,
+		&gm.AddressFrom,
+		&gm.AddressTo,
+		&gm.Amount,
+		&gm.CreatedAt,
+		&gm.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.ErrNotRows
+		}
+		return nil, err
+	}
+	return gm, nil
 }

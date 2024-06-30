@@ -1,7 +1,8 @@
 package storage
 
-import "messageProcessingSystem/internal/model"
+import "messageProcessingSystem/model"
 
 type Storage interface {
-	SavePayment(*model.Message) error
+	SavePayment(*model.Payment) error
+	GetPaymentById(string) (*model.Payment, error)
 }
